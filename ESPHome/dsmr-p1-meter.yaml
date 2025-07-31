@@ -96,7 +96,7 @@ text_sensor:
 # Enable Home Assistant API
 api:
   encryption:
-    key: "NZh7x2LPzXuBe6vK5PIf2rvGItKyLTQ6RkzQeBXgVoA="
+    key: !secret api_base64_encryption_key
 
 # Optional MQTT Configuration
 # Uncomment the lines below to enable MQTT instead of Home Assistant API
@@ -110,7 +110,7 @@ api:
 
 ota:
   - platform: esphome
-    password: "ce06d9eb79070a379a06cf0e34bdffb8"
+    password: !secret ota_password
 
 wifi:
   ssid: !secret wifi_ssid
@@ -119,7 +119,7 @@ wifi:
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "DSMR-P1-Meter Fallback Hotspot"
-    password: "sPWUfQ1HBws6"
+    password: !secret ap_password
 
 captive_portal:
     
