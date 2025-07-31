@@ -17,6 +17,10 @@ logger:
   baud_rate: 0
   level: VERBOSE
 
+# Status LED (built-in LED on D1 Mini)
+status_led:
+  pin: GPIO2
+
 # Hardware UART configuration for DSMR
 uart:
   rx_pin: 
@@ -81,7 +85,6 @@ sensor:
     # Belgium
     gas_delivered_be:
       name: ${friendly_name} Gas Delivered BE
-
 
 text_sensor:
   - platform: dsmr
