@@ -2,6 +2,8 @@
 
 A simple, wireless DSMR "P1 Meter" using an ESP devboard with ESPHome to read data from Dutch/Belgian smart meters.
 
+![DSMR P1 Meter Device](img/simple-dsmr-p1-meter.jpg)
+
 ## Hardware
 
 This project uses a **Wemos D1 Mini** with ESP8266, but works with any ESP8266 or ESP32 board. The circuit is compliant with the DSMR v5 specification and designed for DSMR v5 hardware that allows drawing power from the P1 port (5V, 250mA).
@@ -11,6 +13,8 @@ This project uses a **Wemos D1 Mini** with ESP8266, but works with any ESP8266 o
 - ESP8266/ESP32 development board (e.g., Wemos D1 Mini)
 - 10kΩ resistor (pullup)
 - RJ12 connector and cable
+  - Ready-made breakout: [RJ12 to 6-pin Dupont adapter](https://www.tinytronics.nl/nl/kabels/adapters/rj12-naar-6-pins-dupont-jumper-adapter)
+  - DIY option: [Crimp your own RJ12 connector](https://www.amazon.de/-/en/dp/B004VYEI8G)
 - Optional: 3D printed case
 
 ### Wiring Diagram
