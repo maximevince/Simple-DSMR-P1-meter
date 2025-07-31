@@ -1,0 +1,28 @@
+# ESPHome
+ESPHome/secrets.yaml
+ESPHome/.esphome/
+ESPHome/**/.pioenvs/
+ESPHome/**/.piolibdeps/
+ESPHome/**/lib/
+ESPHome/**/src/
+ESPHome/**/platformio.ini
+
+# Compiled firmware
+*.bin
+*.elf
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.orig

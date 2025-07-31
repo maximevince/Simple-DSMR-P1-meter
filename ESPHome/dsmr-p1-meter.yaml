@@ -1,0 +1,115 @@
+esphome:
+  name: dsmr-p1-meter
+  friendly_name: DSMR P1 Meter
+
+substitutions:
+  name: dsmr-p1-meter
+  friendly_name: DSMR P1 Meter
+
+esp8266:
+  board: d1_mini
+
+# Enable logging
+logger:
+  # Serial logging is disabled by setting the logger baud rate to 0.
+  # Otherwise the logger will occupy the hardware UART, making it unavailable
+  # for receiving smart meter data on GPIO3
+  baud_rate: 0
+  level: VERBOSE
+
+# Hardware UART configuration for DSMR
+uart:
+  rx_pin: 
+    number: GPIO3  # D9/RX pin on Wemos D1 Mini
+    inverted: true  # Invert RX signal for DSMR P1 open drain output
+  baud_rate: 115200
+  data_bits: 8
+  parity: NONE
+  stop_bits: 1
+  rx_buffer_size: 1500
+
+# Example configuration entry
+dsmr:
+
+sensor:
+  - platform: dsmr
+    energy_delivered_tariff1:
+      name: ${friendly_name} Energy Delivered Tariff 1
+      state_class: total_increasing
+    energy_delivered_tariff2:
+      name: ${friendly_name} Energy Delivered Tariff 2
+      state_class: total_increasing
+    energy_returned_tariff1:
+      name: ${friendly_name} Energy Returned Tariff 1
+    energy_returned_tariff2:
+      name: ${friendly_name} Energy Returned Tariff 2
+    power_delivered:
+      name: ${friendly_name} Power Consumed
+    power_returned:
+      name: ${friendly_name} Power Returned
+    electricity_failures:
+      name: ${friendly_name} Electricity Failures
+    electricity_long_failures:
+      name: ${friendly_name} Electricity Long Failures
+    voltage_l1:
+      name: ${friendly_name} Voltage L1
+    voltage_l2:
+      name: ${friendly_name} Voltage L2
+    voltage_l3:
+      name: ${friendly_name} Voltage L3
+    current_l1:
+      name: ${friendly_name} Current L1
+    current_l2:
+      name: ${friendly_name} Current L2
+    current_l3:
+      name: ${friendly_name} Current L3
+    power_delivered_l1:
+      name: ${friendly_name} Power Delivered L1
+    power_delivered_l2:
+      name: ${friendly_name} Power Delivered L2
+    power_delivered_l3:
+      name: ${friendly_name} Power Delivered L3
+    power_returned_l1:
+      name: ${friendly_name} Power Returned L1
+    power_returned_l2:
+      name: ${friendly_name} Power Returned L2
+    power_returned_l3:
+      name: ${friendly_name} Power Returned L3
+    gas_delivered:
+      name: ${friendly_name} Gas Delivered
+    
+    # Belgium
+    gas_delivered_be:
+      name: ${friendly_name} Gas Delivered BE
+
+
+text_sensor:
+  - platform: dsmr
+    identification:
+      name: ${friendly_name} Identification
+    p1_version:
+      name: ${friendly_name} Version
+    # Belgium
+    p1_version_be:
+      name: ${friendly_name} Version BE
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "NZh7x2LPzXuBe6vK5PIf2rvGItKyLTQ6RkzQeBXgVoA="
+
+ota:
+  - platform: esphome
+    password: "ce06d9eb79070a379a06cf0e34bdffb8"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "DSMR-P1-Meter Fallback Hotspot"
+    password: "sPWUfQ1HBws6"
+
+captive_portal:
+    
