@@ -98,6 +98,16 @@ api:
   encryption:
     key: "NZh7x2LPzXuBe6vK5PIf2rvGItKyLTQ6RkzQeBXgVoA="
 
+# Optional MQTT Configuration
+# Uncomment the lines below to enable MQTT instead of Home Assistant API
+# mqtt:
+#   broker: !secret mqtt_broker
+#   username: !secret mqtt_username
+#   password: !secret mqtt_password
+#   discovery: true
+#   discovery_retain: false
+#   topic_prefix: dsmr
+
 ota:
   - platform: esphome
     password: "ce06d9eb79070a379a06cf0e34bdffb8"
