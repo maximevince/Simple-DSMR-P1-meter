@@ -15,6 +15,28 @@ This project uses a **Wemos D1 Mini** with ESP8266, but works with any ESP8266 o
 
 ### Wiring Diagram
 
+ASCII schematic:
+```
+                                                    ESP8266 (e.g. D1 mini)  
+  Smart Meter P1 Port                              ┌────────────────────┐
+      RJ12 (6P6C)                                  │                    │
+┌──────────────────────┐                           │                    │
+│ Pin 1: +5V Supply ───┼────────────────┬──────┬───┼─► 3v3              │
+│                      │                │      │   │                    │
+│ Pin 2: Data Request ─┼────────────────┘     ┌┴┐  │                    │
+│                      │                      │1│  │                    │
+│ Pin 3: Data Ground ──┼────────────────┐     │0│  │                    │
+│                      │                │     │k│  │                    │
+│ Pin 4: Not used  ────┼─X              │     └┬┘  │                    │
+│                      │                │      │   │                    │
+│ Pin 5: Data  ────────┼────────────────)──────┴───┼─► RX (GPIO3)       │
+│                      │                │          │                    │
+│ Pin 6: Power Ground ─┼────────────────┴──────────┼─► GND              │
+└──────────────────────┘                           │                    │
+                                                   └────────────────────┘
+```
+
+
 Connect the RJ12 P1 port to your ESP board as follows:
 
 | RJ12 Pin | Function | ESP Connection |
@@ -27,9 +49,11 @@ Connect the RJ12 P1 port to your ESP board as follows:
 | 6 | Power ground | GND |
 
 **Important Notes:**
-- Pin 2 (Data Request) must be connected to +5V to enable data transmission
-- Pin 5 (Data) requires a 10kΩ pullup resistor to 3.3V
-- The UART RX signal is inverted in the ESPHome configuration
+- POWER: The P1 port provides 5V/250mA on DSMR v5 meters
+- DATA REQUEST: Pin 2 must be connected to +5V to enable data flow
+- PULLUP RESISTOR: Pin 5 requires 10kΩ pullup to 3.3V for proper logic levels (Pin 5 is open drain)
+- UART SIGNAL: The data signal is inverted, because of the open-drain. (UART inversion configured in ESPHome)
+- GROUNDING: Both data ground (pin 3) and power ground (pin 6) need to connect to ESP GND
 
 ### 3D Printed Case
 
@@ -69,6 +93,16 @@ For housing the device, you can use this excellent 3D printable case:
 The ESPHome configuration (`ESPHome/dsmr-p1-meter.yaml`) includes:
 
 - **UART Configuration**: Hardware UART on GPIO3 with inverted signal for P1 compatibility
+```yaml
+uart:
+  rx_pin: 
+    number: GPIO3  # D9/RX pin on Wemos D1 Mini
+    inverted: true  # Invert RX signal from DSMR P1 open drain output
+  baud_rate: 115200
+  data_bits: 8
+  parity: NONE
+  stop_bits: 1
+```
 - **DSMR Sensors**: Complete set of sensors for Dutch and Belgian meters
   - Energy consumption/production (tariff 1 & 2)
   - Current power usage/production

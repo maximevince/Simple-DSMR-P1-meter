@@ -21,7 +21,7 @@ logger:
 uart:
   rx_pin: 
     number: GPIO3  # D9/RX pin on Wemos D1 Mini
-    inverted: true  # Invert RX signal for DSMR P1 open drain output
+    inverted: true  # Invert RX signal from DSMR P1 open drain output
   baud_rate: 115200
   data_bits: 8
   parity: NONE
