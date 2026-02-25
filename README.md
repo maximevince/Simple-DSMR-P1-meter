@@ -135,6 +135,43 @@ The meter provides the following data:
 - Meter identification
 - P1 version information
 
+## Optional: Shelly Pro 3EM Emulation
+
+Grid-connected battery inverters like the **Marstek Venus** and **Hoymiles MS-A2** require a Shelly Pro 3EM on the network to read grid power. This optional feature makes the DSMR P1 meter emulate a Shelly Pro 3EM over UDP, eliminating the need for an actual Shelly device or a bridge like uni-meter.
+
+### How It Works
+
+The ESP listens for Shelly RPC requests (`EM.GetStatus`) on UDP port 1010 and responds with a full Shelly Pro 3EM JSON payload built from live DSMR sensor data — voltage, current, and per-phase active power.
+
+### Enabling
+
+In `ESPHome/dsmr-p1-meter.yaml`, uncomment the packages line:
+
+```yaml
+packages:
+  shelly_pro3em: !include optional/shelly_pro3em.yaml
+```
+
+### Customization
+
+Edit the substitutions in `ESPHome/optional/shelly_pro3em.yaml`:
+
+```yaml
+substitutions:
+  shelly_device_id: "dsmrp1meter"   # Appears as shellypro3em-<device_id>
+  shelly_listen_port: "1010"         # Shelly default UDP port
+```
+
+### Testing
+
+Send a Shelly RPC request with `nc` (netcat):
+
+```bash
+echo '{"id":1,"src":"test","method":"EM.GetStatus","params":{"id":0}}' | nc -u -w2 <ESP_IP> 1010
+```
+
+You should receive a JSON response with per-phase voltage, current, active power, and totals.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -164,4 +201,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ESPHome](https://esphome.io/) for the excellent DSMR component
 - DSMR for a clear and simple spec
 - [i-BoxIt case design](https://makerworld.com/en/models/1185038-d1-mini-esp8266-case)
+- [jsimonetti/esphome-udpserver](https://github.com/jsimonetti/esphome-udpserver) for the UDP server component (MIT, vendored in `ESPHome/custom_components/udpserver/`)
 

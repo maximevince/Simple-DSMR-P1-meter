@@ -1,0 +1,111 @@
+# Shelly Pro 3EM UDP Emulation
+#
+# Emulates a Shelly Pro 3EM energy meter over UDP, allowing grid-connected
+# battery inverters (Marstek Venus, Hoymiles MS-A2, etc.) to read grid power
+# data directly from the DSMR P1 meter without an actual Shelly device.
+#
+# Uses the udpserver component (vendored in custom_components/) to respond
+# from port 1010 — the Shelly default — so devices discover it automatically.
+
+substitutions:
+  shelly_device_id: "dsmrp1meter"
+  shelly_listen_port: "1010"
+
+external_components:
+  - source:
+      type: local
+      path: custom_components
+    components: [ udpserver ]
+
+udpserver:
+  listen_port: ${shelly_listen_port}
+  on_string_data:
+    - text_filter: '"method":"EM.GetStatus"'
+      filter_mode: CONTAINS
+      then:
+        - lambda: |-
+            // Parse "src" from the request to use as "dst" in response
+            std::string dst = "unknown";
+            auto src_pos = data.find("\"src\":\"");
+            if (src_pos != std::string::npos) {
+              src_pos += 7; // length of "src":"
+              auto end_pos = data.find("\"", src_pos);
+              if (end_pos != std::string::npos) {
+                dst = data.substr(src_pos, end_pos - src_pos);
+              }
+            }
+
+            // Parse "id" from the request to echo back
+            int req_id = 0;
+            auto id_pos = data.find("\"id\":");
+            if (id_pos != std::string::npos) {
+              req_id = atoi(data.c_str() + id_pos + 5);
+            }
+
+            // Read DSMR sensor values with NaN guards (sensible defaults before first telegram)
+            float v_l1 = id(dsmr_voltage_l1).has_state() ? id(dsmr_voltage_l1).state : 230.0f;
+            float v_l2 = id(dsmr_voltage_l2).has_state() ? id(dsmr_voltage_l2).state : 230.0f;
+            float v_l3 = id(dsmr_voltage_l3).has_state() ? id(dsmr_voltage_l3).state : 230.0f;
+
+            float i_l1 = id(dsmr_current_l1).has_state() ? id(dsmr_current_l1).state : 0.0f;
+            float i_l2 = id(dsmr_current_l2).has_state() ? id(dsmr_current_l2).state : 0.0f;
+            float i_l3 = id(dsmr_current_l3).has_state() ? id(dsmr_current_l3).state : 0.0f;
+
+            // DSMR power sensors are in kW — convert to W
+            // Net active power = (delivered - returned) * 1000
+            float pd_l1 = id(dsmr_power_delivered_l1).has_state() ? id(dsmr_power_delivered_l1).state : 0.0f;
+            float pd_l2 = id(dsmr_power_delivered_l2).has_state() ? id(dsmr_power_delivered_l2).state : 0.0f;
+            float pd_l3 = id(dsmr_power_delivered_l3).has_state() ? id(dsmr_power_delivered_l3).state : 0.0f;
+
+            float pr_l1 = id(dsmr_power_returned_l1).has_state() ? id(dsmr_power_returned_l1).state : 0.0f;
+            float pr_l2 = id(dsmr_power_returned_l2).has_state() ? id(dsmr_power_returned_l2).state : 0.0f;
+            float pr_l3 = id(dsmr_power_returned_l3).has_state() ? id(dsmr_power_returned_l3).state : 0.0f;
+
+            // Net active power: (delivered - returned) * 1000
+            // Sign convention: positive = consuming, negative = exporting
+            float act_l1 = (pd_l1 - pr_l1) * 1000.0f;
+            float act_l2 = (pd_l2 - pr_l2) * 1000.0f;
+            float act_l3 = (pd_l3 - pr_l3) * 1000.0f;
+
+            // Sign current opposite to power direction
+            // (negative = consuming, positive = exporting)
+            // DSMR current is always positive (magnitude only)
+            float si_l1 = act_l1 >= 0 ? -i_l1 : i_l1;
+            float si_l2 = act_l2 >= 0 ? -i_l2 : i_l2;
+            float si_l3 = act_l3 >= 0 ? -i_l3 : i_l3;
+
+            // Apparent power: always negative (voltage * current magnitude, negated)
+            float aprt_l1 = -(v_l1 * i_l1);
+            float aprt_l2 = -(v_l2 * i_l2);
+            float aprt_l3 = -(v_l3 * i_l3);
+
+            // Totals from DSMR total sensors (kW -> W), fallback to sum of phases
+            float total_act;
+            if (id(dsmr_power_delivered).has_state() && id(dsmr_power_returned).has_state()) {
+              total_act = (id(dsmr_power_delivered).state - id(dsmr_power_returned).state) * 1000.0f;
+            } else {
+              total_act = act_l1 + act_l2 + act_l3;
+            }
+            float total_i = si_l1 + si_l2 + si_l3;
+            float total_aprt = aprt_l1 + aprt_l2 + aprt_l3;
+
+            // Build Shelly Pro 3EM RPC response
+            char buf[768];
+            snprintf(buf, sizeof(buf),
+              "{\"id\":%d,\"src\":\"shellypro3em-${shelly_device_id}\",\"dst\":\"%s\",\"result\":{"
+              "\"id\":0,"
+              "\"a_current\":%.2f,\"a_voltage\":%.1f,\"a_act_power\":%.1f,\"a_aprt_power\":%.1f,\"a_pf\":1.00,\"a_freq\":50.0,"
+              "\"b_current\":%.2f,\"b_voltage\":%.1f,\"b_act_power\":%.1f,\"b_aprt_power\":%.1f,\"b_pf\":1.00,\"b_freq\":50.0,"
+              "\"c_current\":%.2f,\"c_voltage\":%.1f,\"c_act_power\":%.1f,\"c_aprt_power\":%.1f,\"c_pf\":1.00,\"c_freq\":50.0,"
+              "\"total_current\":%.2f,\"total_act_power\":%.1f,\"total_aprt_power\":%.1f"
+              "}}",
+              req_id, dst.c_str(),
+              si_l1, v_l1, act_l1, aprt_l1,
+              si_l2, v_l2, act_l2, aprt_l2,
+              si_l3, v_l3, act_l3, aprt_l3,
+              total_i, total_act, total_aprt
+            );
+
+            std::string response(buf);
+            udp.send_response(response);
+            ESP_LOGD("shelly_em", "Sent Shelly Pro 3EM response (%d bytes) to %s", response.length(), dst.c_str());

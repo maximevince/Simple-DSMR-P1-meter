@@ -6,6 +6,10 @@ substitutions:
   name: dsmr-p1-meter
   friendly_name: DSMR P1 Meter
 
+# Optional features — uncomment to enable
+packages: {}
+  # shelly_pro3em: !include optional/shelly_pro3em.yaml
+
 esp8266:
   restore_from_flash: true
   board: d1_mini
@@ -49,36 +53,50 @@ sensor:
     energy_returned_tariff2:
       name: ${friendly_name} Energy Returned Tariff 2
     power_delivered:
-      name: ${friendly_name} Power Consumed
+      id: dsmr_power_delivered
+      name: ${friendly_name} Power Delivered
     power_returned:
+      id: dsmr_power_returned
       name: ${friendly_name} Power Returned
     electricity_failures:
       name: ${friendly_name} Electricity Failures
     electricity_long_failures:
       name: ${friendly_name} Electricity Long Failures
     voltage_l1:
+      id: dsmr_voltage_l1
       name: ${friendly_name} Voltage L1
     voltage_l2:
+      id: dsmr_voltage_l2
       name: ${friendly_name} Voltage L2
     voltage_l3:
+      id: dsmr_voltage_l3
       name: ${friendly_name} Voltage L3
     current_l1:
+      id: dsmr_current_l1
       name: ${friendly_name} Current L1
     current_l2:
+      id: dsmr_current_l2
       name: ${friendly_name} Current L2
     current_l3:
+      id: dsmr_current_l3
       name: ${friendly_name} Current L3
     power_delivered_l1:
+      id: dsmr_power_delivered_l1
       name: ${friendly_name} Power Delivered L1
     power_delivered_l2:
+      id: dsmr_power_delivered_l2
       name: ${friendly_name} Power Delivered L2
     power_delivered_l3:
+      id: dsmr_power_delivered_l3
       name: ${friendly_name} Power Delivered L3
     power_returned_l1:
+      id: dsmr_power_returned_l1
       name: ${friendly_name} Power Returned L1
     power_returned_l2:
+      id: dsmr_power_returned_l2
       name: ${friendly_name} Power Returned L2
     power_returned_l3:
+      id: dsmr_power_returned_l3
       name: ${friendly_name} Power Returned L3
     gas_delivered:
       name: ${friendly_name} Gas Delivered
